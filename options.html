@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+        button[type="submit"] {
+            width: 100%;
+            height: 40px;
+            text-align: center;
+        }
+    </style>
+    <script src="options.js" defer></script>
+  </head>
+  <body>
+    <form id="option-form">
+      <label for="timerInterval">Interval in milliseconds at which the clipboard is read or URL is queried</label>
+      <input type="number" name="timerInterval" id="timerInterval" min="50" required />
+      <br />
+      <label for="reloadPersist">Keep state on page reload</label>
+      <input type="checkbox" name="reloadPersist" id="reloadPersist" required />
+      <br />
+      <label for="fetchHttp">Query the specified URL instead of reading the clipboard</label>
+      <input type="checkbox" name="fetchHttp" id="fetchHttp" required />
+      <br />
+      <label for="url">URL to query from</label>
+      <input type="text" name="url" id="url" required />
+      <br />
+      <br />
+      <button class="browser-style" type="submit">Save</button>
+    </form>
+  </body>
+</html>

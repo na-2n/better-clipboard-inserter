@@ -1,6 +1,6 @@
 {
-    "name": "Wayland Clipboard Inserter",
-    "description": "Queries a specified url at a set interval and appends the response as a paragraph to the current page. To be used with wlclipserv.",
+    "name": "Better Clipboard Inserter",
+    "description": "Clipboard inserter with extra features such as keeping state on page reload and being able to read from a URL instead of the clipboard.",
     "version": "0.1.0",
     "manifest_version": 2,
     "icons": {
@@ -15,19 +15,25 @@
             "32": "icons/icon32.png",
             "64": "icons/icon64.png"
         },
-        "default_title": "Toggle Wayland Clipboard Inserter"
+        "default_title": "Toggle Better Clipboard Inserter"
     },
     "permissions": [
         "activeTab",
         "scripting",
+        "storage",
+        "clipboardRead",
         "<all_urls>"
     ],
     "background": {
         "scripts": ["background.js"]
     },
+    "options_ui": {
+        "page": "options.html",
+        "browser_style": true
+    },
     "browser_specific_settings": {
         "gecko": {
-            "id": "clipboard@wayland"
+            "id": "better-clipboard-inserter@na2"
         }
     }
 }

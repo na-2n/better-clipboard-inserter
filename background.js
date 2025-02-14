@@ -5,6 +5,8 @@ let previousText = null;
 // TODO settings page
 const settings = {
     timerInterval: 300,
+    reloadPersist: true,
+    fetchHttp: true,
     url: "http://localhost:2653",
 };
 
@@ -28,14 +30,18 @@ function contentScript() {
 
 function activateTimer() {
     activeTimer = setInterval(() => {
-        fetch(settings.url, { mode: "no-cors" })
-            .then(res => {
-                if (!res.ok) {
-                    return Promise.reject(new Error(`error querying ${settings.url}`));
-                }
+        const textPromise = settings.fetchHttp
+            ? fetch(settings.url, { mode: "no-cors" })
+                .then(res => {
+                    if (!res.ok) {
+                        return Promise.reject(new Error(`error querying ${settings.url}`));
+                    }
 
-                return res.text();
-            })
+                    return res.text();
+                })
+            : navigator.clipboard.readText();
+
+        textPromise
             .then(content => {
                 if (content === null || content.length === 0 || content === previousText) return;
                 previousText = content;
@@ -46,7 +52,7 @@ function activateTimer() {
             })
             //TODO show error to user
             .catch(console.error);
-    }, settings.timerInterval);
+    }, parseInt(settings.timerInterval));
 }
 
 function activate(tabId, url) {
@@ -62,10 +68,12 @@ function activate(tabId, url) {
     }
 }
 
-function deactivate(tabId, dead = false) {
+function deactivate(tabId, dead = false, completelyDead = false) {
     delete activeTabs[tabId];
 
-    browser.browserAction.setBadgeText({ tabId, text: "" });
+    if (!completelyDead) {
+        browser.browserAction.setBadgeText({ tabId, text: "" });
+    }
     if (!dead) {
         browser.tabs.sendMessage(tabId, { action: "eject" });
     }
@@ -75,6 +83,23 @@ function deactivate(tabId, dead = false) {
         activeTimer = null;
     }
 }
+
+const confKeys = ["timerInterval", "reloadPersist", "fetchHttp", "url"]
+function updateSettings(data) {
+    confKeys
+        .filter(k => data.hasOwnProperty(k))
+        .forEach(k => settings[k] = data[k]);
+}
+
+
+browser.storage.local.get(confKeys).then(updateSettings);
+browser.storage.onChanged.addListener((changes, area) => {
+    if (area === "local") {
+        confKeys
+            .filter(k => changes.hasOwnProperty(k))
+            .forEach(k => settings[k] = changes[k].newValue);
+    }
+});
 
 browser.browserAction.onClicked.addListener(() => {
     browser.tabs.query({ active: true, currentWindow: true })
@@ -89,11 +114,17 @@ browser.browserAction.onClicked.addListener(() => {
         });
 });
 
+browser.tabs.onRemoved.addListener((tabId, removeInfo) => {
+    if (activeTabs.hasOwnProperty(tabId)) {
+        deactivate(tabId, true, true);
+    }
+});
+
 browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     // deactivate when we change url
     if (changeInfo.url) {
         if (activeTabs.hasOwnProperty(tabId)) {
-            if (activeTabs[tabId] !== changeInfo.url) {
+            if (!settings.reloadPersist || activeTabs[tabId] !== changeInfo.url) {
                 deactivate(tabId, true);
             } else {
                 activate(tabId, changeInfo.url);
