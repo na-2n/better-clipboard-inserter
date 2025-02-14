@@ -1,7 +1,7 @@
 const DEFAULTS = {
     timerInterval: 300,
     reloadPersist: true,
-    fetchHttp: true,
+    fetchHttp: false,
     url: "http://localhost:2653",
 };
 
